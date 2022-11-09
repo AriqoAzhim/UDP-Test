@@ -10,6 +10,8 @@ import serverLogging as log
 
 global blackList
 blackList = {}
+global loginAttempts
+loginAttempts = {}
 
 # when a user is added to the blackList, they are initialised with a value of 10
 # every second, reduce value by one. If val = 0, remove them from the blacklist
@@ -38,16 +40,25 @@ def decrement_AEDSeqNum():
     global AEDSeqNum 
     AEDSeqNum -= 1
 
-def add_auth_attempt(username, loginAttempts):
-    for item in loginAttempts:
-        if item[0] == username:
-            username[item[0]] = item[1] + 1
+def add_auth_attempt(username):
+    # if no logins have been attempted yt
+    if len(loginAttempts) == 0:
+        loginAttempts[username] = 1
+    else:
+        for item in loginAttempts.items():
+            if item[0] == username:
+                loginAttempts[item[0]] = item[1] + 1
+                return
+        loginAttempts[username] = 1
 
-def clear_login_attempts(username, loginAttempts):
+def clear_login_attempts(username):
     loginAttempts.pop(username)
 
-def get_auth_attempts(username, loginAttempts):
-    for item in loginAttempts:
+def get_auth_attempts(username):
+    print(loginAttempts)
+    for item in loginAttempts.items():
+        print(item)
+        print(type(item))
         if item[0] == username:
             return item[1]
 
@@ -132,7 +143,6 @@ class ClientThread(Thread):
         self.clientAuth = False
         self.authCount = 0
         self.clientName = None
-        self.loginAttempts = {}
         
         print("===== New connection created for: ", clientAddress)
         self.clientAlive = True
@@ -150,7 +160,7 @@ class ClientThread(Thread):
             # Authentication Loop
             while self.clientAuth == False:
                 # if there have been login Attempts
-                if len(self.loginAttempts) > 0:
+                if len(loginAttempts) > 0:
                     message = 'retry auth'
                 else:
                     message = 'authentication'
@@ -170,8 +180,9 @@ class ClientThread(Thread):
                     print(f"User {username} is currently blocked from authenticating")
                     print(f"Please wait {blackList[username]} before retrying")
 
-                add_auth_attempt(username, self.loginAttempts)
-                if get_auth_attempts(username, self.loginAttempts) > 2:
+                add_auth_attempt(username)
+                print(loginAttempts)
+                if get_auth_attempts(username) > 2:
                     message = 'failed auth'
                     self.clientSocket.send(message.encode())
                     print(f"Blocking Authentication with {username} for 10 seconds")
