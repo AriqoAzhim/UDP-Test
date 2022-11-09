@@ -68,7 +68,7 @@ if __name__ == "__main__":
             authFlag = True
         elif receivedMessage == "failed auth":
             print(
-                "Too many login attempts, try again later, Connection blocked for 10 seconds"
+                "Connection with this user has been blocked, please wait and try again later"
             )
 
     # initialise Audience Component
