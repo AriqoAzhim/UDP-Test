@@ -17,8 +17,6 @@ def edge_device_connection_log(message):
 
 
 def get_edge_device_seq_num(edgeDeviceName):
-    print(f"finding seqNum of {edgeDeviceName}")
-
     with open("edge-device-log.txt") as f:
         lines = f.readlines()
         print(lines)

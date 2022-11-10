@@ -24,12 +24,11 @@ def auth():
     return username
 
 
-def UDP_listener():
+def UDP_listener(IP, Port):
     # create thread for UDP, keep listening for packages and receive them
-    sockName = clientSocket.getsockname()
-    timeout = 3
+    timeout = 5
     UDP_Audience = threading.Thread(
-        target=audience.receive_file, args=(sockName[0], sockName[1], timeout)
+        target=audience.receive_file, args=(IP, Port, timeout)
     )
     UDP_Audience.daemon = True
     UDP_Audience.start()
@@ -38,14 +37,15 @@ def UDP_listener():
 if __name__ == "__main__":
 
     # check that arguments
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print(
-            "\n===== Error usage, python3 TCPClient3.py SERVER_IP SERVER_PORT ======\n"
+            "\n===== Error usage, python3 client.py SERVER_IP SERVER_PORT CLIENT_UDP_SERVER_PORT======\n"
         )
         exit(0)
     serverHost = sys.argv[1]
     serverPort = int(sys.argv[2])
     serverAddress = (serverHost, serverPort)
+    clientUDPServerPort = int(sys.argv[3])
     edgeDeviceName = None
 
     # define a socket for the client side, it would be used to communicate with the server
@@ -72,6 +72,10 @@ if __name__ == "__main__":
             continue
         elif receivedMessage == "success auth":
             print("Welcome!")
+
+            message = str(clientUDPServerPort)
+            clientSocket.sendall(message.encode())
+
             authFlag = True
         elif receivedMessage == "failed auth":
             print(
@@ -79,7 +83,7 @@ if __name__ == "__main__":
             )
 
     # initialise Audience Component
-    UDP_listener()
+    UDP_listener(serverHost, clientUDPServerPort)
 
     while True:
         message = input(

@@ -4,7 +4,6 @@ import presenter
 # check if file exists -> Boolean
 def check_file_exists(filename):
     if os.path.isfile(filename) != True:
-        print(f"{filename} does not exist")
         return False
     else:
         return True
@@ -61,6 +60,7 @@ def UED(edgeDeviceName, client, args):
 
     filename = f"{edgeDeviceName}-{fileID}.txt"
     if not check_file_exists(filename):
+        print(f"File {filename} does not exist!")
         return False
 
     with open(f"{edgeDeviceName}-{fileID}.txt", "r") as f:
@@ -164,6 +164,7 @@ def UVF(client, args):
     filename = args[2]
 
     if not check_file_exists(filename):
+        print(f"File {filename} does not exist")
         return False
 
     deviceName = str(args[1])

@@ -182,7 +182,6 @@ def UVF(client, args):
         print(f"Attempting to send file to {args[1]}")
 
     toIP, toPort = receivedMessage.split()
-
     try:
         presenter.present_file(toIP, int(toPort), filename, deviceName)
     except:

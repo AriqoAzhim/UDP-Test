@@ -221,9 +221,14 @@ class ClientThread(Thread):
                 if self.clientAuth == True:
                     message = "success auth"
                     self.clientSocket.send(message.encode())
+
+                    # receive client UDP Server port number
+                    data = self.clientSocket.recv(1024)
+                    clientUDPServerPort = data.decode()
+
                     self.clientName = username
 
-                    logMessage = f"{AEDSeqNum}; {curr_timestamp()}; {self.clientName}; {self.clientAddress[0]}; {str(self.clientAddress[1])}; "
+                    logMessage = f"{AEDSeqNum}; {curr_timestamp()}; {self.clientName}; {self.clientAddress[0]}; {clientUDPServerPort}; "
 
                     log.edge_device_connection_log(logMessage)
 
@@ -309,11 +314,8 @@ class ClientThread(Thread):
                 print("===== the user disconnected - ", self.clientAddress)
                 break
             elif command == "status":
-                print(out)
                 checkDevName = out[1]
-                print(checkDevName)
                 activeStatus = int(log.get_edge_device_seq_num(checkDevName))
-                print(f"active status : + {activeStatus}")
                 # if not active, return 0
                 if activeStatus == 0:
                     message = str(activeStatus)
@@ -335,7 +337,7 @@ if __name__ == "__main__":
     # acquire server host and port from command line parameter
     if len(sys.argv) != 3:
         print(
-            "\n===== Error usage, python3 TCPServer3.py SERVER_PORT maxServerAuthAttempts ======\n"
+            "\n===== Error usage, python3 server.py SERVER_PORT maxServerAuthAttempts ======\n"
         )
         exit(0)
     # check if valid value for maxServerAuthAttempts was given
