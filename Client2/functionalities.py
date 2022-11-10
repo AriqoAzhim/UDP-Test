@@ -74,7 +74,7 @@ def UED(edgeDeviceName, client, args):
     receivedMessage = data.decode()
 
     if receivedMessage == "UED ACK":
-        print("Data file with ID of {} has been uploaded to Server")
+        print(f"Data file with ID of {fileID} has been uploaded to Server")
     else:
         print("Transfer Failed")
         return False
