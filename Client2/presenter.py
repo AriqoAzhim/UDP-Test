@@ -1,8 +1,9 @@
-# Presents files 
+# Presents files
 
 from socket import *
 import time
 import sys
+
 
 def present_file(IP, Port, filename, toEdgeDevice):
     sock = socket(AF_INET, SOCK_DGRAM)
@@ -11,7 +12,7 @@ def present_file(IP, Port, filename, toEdgeDevice):
 
     with open(filename, "rb") as f:
         data = f.read(1024)
-        while(data):
-            if(sock.sendto(data, (IP, Port))):
+        while data:
+            if sock.sendto(data, (IP, Port)):
                 data = f.read(1024)
                 time.sleep(0.02)

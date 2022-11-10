@@ -9,12 +9,14 @@ def check_file_exists(filename):
     else:
         return True
 
+
 # checks for amount of data/lines in a given file
 def file_data_amount(filename):
-    with open(filename, 'r')  as f:
+    with open(filename, "r") as f:
         for count, line in enumerate(f):
             pass
         return count + 1
+
 
 def EDG(edgeDeviceName, args):
     # Generate Edge Device Data
@@ -44,6 +46,7 @@ def EDG(edgeDeviceName, args):
     print("Data Generation Done!")
     return True
 
+
 def UED(edgeDeviceName, client, args):
     # Generate Edge Device Data
     if len(args) != 2:
@@ -53,9 +56,7 @@ def UED(edgeDeviceName, client, args):
     try:
         fileID = int(args[1])
     except:
-        print(
-            "the fileID is not an integer, you need to it as an integer"
-        )
+        print("the fileID is not an integer, you need to it as an integer")
         return False
 
     filename = f"{edgeDeviceName}-{fileID}.txt"
@@ -64,7 +65,7 @@ def UED(edgeDeviceName, client, args):
 
     with open(f"{edgeDeviceName}-{fileID}.txt", "r") as f:
         dataToSend = f.read()
-    
+
     dataAmount = file_data_amount(filename)
     message = "UED " + filename[:-4] + " " + str(dataAmount) + " " + dataToSend
     client.sendall(message.encode())
@@ -77,8 +78,9 @@ def UED(edgeDeviceName, client, args):
     else:
         print("Transfer Failed")
         return False
-    
+
     return True
+
 
 def prep_computation(edgeDeviceName, client, computation, fileID):
     message = f"SCS {computation} " + f"{edgeDeviceName}-{fileID}.txt"
@@ -94,6 +96,7 @@ def prep_computation(edgeDeviceName, client, computation, fileID):
         print(f"{computation} = " + receivedMessage)
         return True
 
+
 def SCS(edgeDeviceName, client, args):
     if len(args) != 3:
         print("Invalid input: SCS <fileID> <computationOperation>")
@@ -102,9 +105,7 @@ def SCS(edgeDeviceName, client, args):
     try:
         fileID = int(args[1])
     except:
-        print(
-            "the fileID is not an integer"
-        )
+        print("the fileID is not an integer")
         return False
 
     computation = args[2]
@@ -115,6 +116,7 @@ def SCS(edgeDeviceName, client, args):
         print("invalid computation, try again")
         return False
 
+
 def DTE(edgeDeviceName, client, args):
     if len(args) != 2:
         print("Invalid input: DTE <fileID>")
@@ -123,9 +125,7 @@ def DTE(edgeDeviceName, client, args):
     try:
         fileID = int(args[1])
     except:
-        print(
-            "the fileID is not an integer"
-        )
+        print("the fileID is not an integer")
         return False
 
     message = "DTE " + f"{edgeDeviceName}-{fileID}.txt"
@@ -139,18 +139,21 @@ def DTE(edgeDeviceName, client, args):
     else:
         print(f"File with fileID {fileID} successfully removed from the central server")
 
+
 def AED(client):
     client.sendall("AED".encode())
 
     data = client.recv(1024)
     receivedMessage = data.decode()
-    
+
     print("received message = " + receivedMessage)
+
 
 def OUT(edgeDeviceName, client, message):
     print(f"Bye, {edgeDeviceName}!")
     client.sendall(message.encode())
     return True
+
 
 def UVF(client, args):
     if len(args) != 3:
@@ -159,7 +162,7 @@ def UVF(client, args):
 
     # this device is the presenter and the target is the audience
     filename = args[2]
-    
+
     if not check_file_exists(filename):
         return False
 
@@ -176,7 +179,7 @@ def UVF(client, args):
         return False
     else:
         print(f"Attempting to send file to {args[1]}")
-    
+
     toIP, toPort = receivedMessage.split()
 
     try:

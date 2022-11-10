@@ -3,6 +3,7 @@
 from socket import *
 import select
 
+
 def receive_file(IP, Port, timeout):
     sock = socket(AF_INET, SOCK_DGRAM)
     sock.bind((IP, Port))
@@ -11,7 +12,7 @@ def receive_file(IP, Port, timeout):
         data, addr = sock.recvfrom(1024)
         if data:
             filename = data.strip()
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             while True:
                 ready = select.select([sock], [], [], timeout)
                 if ready[0]:
@@ -19,5 +20,7 @@ def receive_file(IP, Port, timeout):
                     f.write(data)
                 else:
                     print(f"\nFile {filename} successfuly transferred")
-                    print("Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT, UVF): ")
+                    print(
+                        "Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT, UVF): "
+                    )
                     break

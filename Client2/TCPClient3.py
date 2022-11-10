@@ -12,6 +12,7 @@ from functionalities import *
 import presenter
 import audience
 
+
 def auth():
     username = input("Username: ")
     message = username
@@ -22,19 +23,25 @@ def auth():
     clientSocket.sendall(message.encode())
     return username
 
+
 def UDP_listener():
     # create thread for UDP, keep listening for packages and receive them
     sockName = clientSocket.getsockname()
     timeout = 3
-    UDP_Audience = threading.Thread(target=audience.receive_file, args=(sockName[0], sockName[1], timeout))
+    UDP_Audience = threading.Thread(
+        target=audience.receive_file, args=(sockName[0], sockName[1], timeout)
+    )
     UDP_Audience.daemon = True
     UDP_Audience.start()
 
+
 if __name__ == "__main__":
 
-    # check that arguments 
+    # check that arguments
     if len(sys.argv) != 3:
-        print("\n===== Error usage, python3 TCPClient3.py SERVER_IP SERVER_PORT ======\n")
+        print(
+            "\n===== Error usage, python3 TCPClient3.py SERVER_IP SERVER_PORT ======\n"
+        )
         exit(0)
     serverHost = sys.argv[1]
     serverPort = int(sys.argv[2])
@@ -73,7 +80,7 @@ if __name__ == "__main__":
 
     # initialise Audience Component
     UDP_listener()
-    
+
     while True:
         message = input(
             "Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT, UVF): "
@@ -81,27 +88,25 @@ if __name__ == "__main__":
         args = message.split(" ")
         command = args[0]
 
-        match command:
-            case "EDG":
-                EDG(edgeDeviceName, args)
-            case "UED":
-                UED(edgeDeviceName, clientSocket, args)
-            case "SCS":
-                SCS(edgeDeviceName, clientSocket, args)
-            case "DTE":
-                DTE(edgeDeviceName, clientSocket, args)
-            case "AED":
-                AED(clientSocket)
-            case "OUT":
-                if OUT(edgeDeviceName, clientSocket, message):
-                    break
-            case "UVF":
-                UVF(clientSocket, args)
-            case _:
-                print("Error! Invalid Command")
-                continue
+        if command == "EDG":
+            EDG(edgeDeviceName, args)
+        elif command == "UED":
+            UED(edgeDeviceName, clientSocket, args)
+        elif command == "SCS":
+            SCS(edgeDeviceName, clientSocket, args)
+        elif command == "DTE":
+            DTE(edgeDeviceName, clientSocket, args)
+        elif command == "AED":
+            AED(clientSocket)
+        elif command == "OUT":
+            if OUT(edgeDeviceName, clientSocket, message):
+                break
+        elif command == "UVF":
+            UVF(clientSocket, args)
+        else:
+            print("Error! Invalid Command")
+            continue
 
     # close the socket
     print("closing socket")
     clientSocket.close()
-
