@@ -81,25 +81,44 @@ if __name__ == "__main__":
         args = message.split(" ")
         command = args[0]
 
-        match command:
-            case "EDG":
-                EDG(edgeDeviceName, args)
-            case "UED":
-                UED(edgeDeviceName, clientSocket, args)
-            case "SCS":
-                SCS(edgeDeviceName, clientSocket, args)
-            case "DTE":
-                DTE(edgeDeviceName, clientSocket, args)
-            case "AED":
-                AED(clientSocket)
-            case "OUT":
-                if OUT(edgeDeviceName, clientSocket, message):
+        if command == "EDG":
+            EDG(edgeDeviceName, args)
+        elif command == "UED":
+            UED(edgeDeviceName, clientSocket, args)
+        elif command == "SCS":
+            SCS(edgeDeviceName, clientSocket, args)
+        elif command == "DTE":
+            DTE(edgeDeviceName, clientSocket, args)
+        elif command == "AED":
+            AED(clientSocket)
+        elif command == "OUT":
+            if OUT(edgeDeviceName, clientSocket, message):
                     break
-            case "UVF":
-                UVF(clientSocket, args)
-            case _:
-                print("Error! Invalid Command")
-                continue
+        elif command == "UVF":
+            UVF(clientSocket, args)
+        else:
+            print("Error! Invalid Command")
+            continue
+
+        # match command:
+        #     case "EDG":
+        #         EDG(edgeDeviceName, args)
+        #     case "UED":
+        #         UED(edgeDeviceName, clientSocket, args)
+        #     case "SCS":
+        #         SCS(edgeDeviceName, clientSocket, args)
+        #     case "DTE":
+        #         DTE(edgeDeviceName, clientSocket, args)
+        #     case "AED":
+        #         AED(clientSocket)
+        #     case "OUT":
+        #         if OUT(edgeDeviceName, clientSocket, message):
+        #             break
+        #     case "UVF":
+        #         UVF(clientSocket, args)
+        #     case _:
+        #         print("Error! Invalid Command")
+        #         continue
 
     # close the socket
     print("closing socket")

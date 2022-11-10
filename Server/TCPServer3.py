@@ -105,17 +105,26 @@ def process_computation(edgeDeviceName, computation, filename):
     print(
         f"{computation} computation has been made on edge device {edgeDeviceName}, for data file {filename}, the result is: "
     )
-    match computation:
-        case "SUM":
-            result = sum(num_list)
-            return result
-        case "AVERAGE":
-            result = sum(num_list) / len(num_list)
-            return result
-        case "MAX":
-            return max(num_list)
-        case "MIN":
-            return min(num_list)
+
+    if computation == "SUM":
+        return sum(num_list)
+    elif computation == "AVERAGE":
+        return sum(num_list) / len(num_list)
+    elif computation == "MAX":
+        return max(num_list)
+    elif computation == "MIN":
+        return min(num_list)
+    # match computation:
+    #     case "SUM":
+    #         result = sum(num_list)
+    #         return result
+    #     case "AVERAGE":
+    #         result = sum(num_list) / len(num_list)
+    #         return result
+    #     case "MAX":
+    #         return max(num_list)
+    #     case "MIN":
+    #         return min(num_list)
 
 
 # checks for amount of data/lines in a given file
@@ -242,102 +251,196 @@ class ClientThread(Thread):
             out = message.split(" ")
 
             command = out[0]
-            match command:
-                case "EDG":
-                    print(f"Edge Device {self.clientName} issued command EDG")
-                case "UED":
-                    print(f"Edge Device {self.clientName} issued command UED")
 
-                    # send ACK of UED data transfer
-                    message = "UED ACK"
+            if command == "EDG":
+                print(f"Edge Device {self.clientName} issued command EDG")
+            elif command == "UED":
+                print(f"Edge Device {self.clientName} issued command UED")
+
+                # send ACK of UED data transfer
+                message = "UED ACK"
+                self.clientSocket.send(message.encode())
+                filename = out[1].split("-")
+
+                print(f"A data file is received from edge device {self.clientName}")
+                with open(out[1] + ".txt", "w") as f:
+                    f.write(out[3])
+
+                # log data transfer
+                logMessage = (
+                    f"{filename[0]}; {curr_timestamp()}; {filename[1]}; {out[2]};"
+                )
+                log.log(logMessage)
+                print("upload_log.txt has been updated")
+            elif command == "SCS":
+                print(
+                    f"Edge Device {self.clientName} requested a computation operation of {out[1]} for {out[2]}"
+                )
+                if check_file_exists(out[2]) != True:
+                    self.clientSocket.send("file does not exist".encode())
+                    continue
+
+                result = str(process_computation(self.clientName, out[1], out[2]))
+                print(result)
+                self.clientSocket.send(result.encode())
+            elif command == "DTE":
+                print(f"Edge Device {self.clientName} issued command DTE")
+                filename = out[1]
+                if check_file_exists(filename) != True:
+                    self.clientSocket.send("file does not exist".encode())
+                    continue
+                dataAmount = file_data_amount(filename)
+                os.remove(filename)
+                now = datetime.now()
+                timestamp = now.strftime("%d %B %Y %H:%M:%S")
+
+                filelist = filename.split("-")
+                edgeDeviceName = filelist[0]
+                fileID = filelist[1][:-4]
+
+                log.delete_log(
+                    f"{edgeDeviceName}; {timestamp}; {fileID}; {dataAmount}"
+                )
+
+                message = "DTE success"
+                self.clientSocket.send(message.encode())
+            elif command == "AED":
+                print(f"Edge Device {self.clientName} issued command AED")
+                AED = process_AED(self.clientName, self)
+                if AED == "":
+                    message = "There are no other devices active"
+                else:
+                    message = AED
+
+                print(f"message = {message}")
+                self.clientSocket.send(message.encode())
+            elif command == "OUT":
+                print(f"{self.clientName} exited the edge network")
+                self.clientAlive = False
+
+                decrement_AEDSeqNum()
+                log.update_edge_device_log(self.clientName)
+            elif command == "":
+                self.clientAlive = False
+                print("===== the user disconnected - ", self.clientAddress)
+                break
+            elif command == "status":
+                print(out)
+                checkDevName = out[1]
+                print(checkDevName)
+                activeStatus = int(log.get_edge_device_seq_num(checkDevName))
+                print(f"active status : + {activeStatus}")
+                # if not active, return 0
+                if activeStatus == 0:
+                    message = str(activeStatus)
                     self.clientSocket.send(message.encode())
-                    filename = out[1].split("-")
+                    continue
 
-                    print(f"A data file is received from edge device {self.clientName}")
-                    with open(out[1] + ".txt", "w") as f:
-                        f.write(out[3])
+                IPPortList = get_IP_Port(checkDevName)
+                # return IP and Port of the checked Device
+                message = f"{IPPortList[0]} {IPPortList[1]}"
+                self.clientSocket.send(message.encode())
+            else:
+                print(out)
+                print("[send] Cannot understand this message")
+                message = "Cannot understand this message"
+                self.clientSocket.send(message.encode())
+            # match command:
+            #     case "EDG":
+            #         print(f"Edge Device {self.clientName} issued command EDG")
+            #     case "UED":
+            #         print(f"Edge Device {self.clientName} issued command UED")
 
-                    # log data transfer
-                    logMessage = (
-                        f"{filename[0]}; {curr_timestamp()}; {filename[1]}; {out[2]};"
-                    )
-                    log.log(logMessage)
-                    print("upload_log.txt has been updated")
-                case "SCS":
-                    print(
-                        f"Edge Device {self.clientName} requested a computation operation of {out[1]} for {out[2]}"
-                    )
-                    if check_file_exists(out[2]) != True:
-                        self.clientSocket.send("file does not exist".encode())
-                        continue
+            #         # send ACK of UED data transfer
+            #         message = "UED ACK"
+            #         self.clientSocket.send(message.encode())
+            #         filename = out[1].split("-")
 
-                    result = str(process_computation(self.clientName, out[1], out[2]))
-                    print(result)
-                    self.clientSocket.send(result.encode())
-                case "DTE":
-                    print(f"Edge Device {self.clientName} issued command DTE")
-                    filename = out[1]
-                    if check_file_exists(filename) != True:
-                        self.clientSocket.send("file does not exist".encode())
-                        continue
-                    dataAmount = file_data_amount(filename)
-                    os.remove(filename)
-                    now = datetime.now()
-                    timestamp = now.strftime("%d %B %Y %H:%M:%S")
+            #         print(f"A data file is received from edge device {self.clientName}")
+            #         with open(out[1] + ".txt", "w") as f:
+            #             f.write(out[3])
 
-                    filelist = filename.split("-")
-                    edgeDeviceName = filelist[0]
-                    fileID = filelist[1][:-4]
+            #         # log data transfer
+            #         logMessage = (
+            #             f"{filename[0]}; {curr_timestamp()}; {filename[1]}; {out[2]};"
+            #         )
+            #         log.log(logMessage)
+            #         print("upload_log.txt has been updated")
+            #     case "SCS":
+            #         print(
+            #             f"Edge Device {self.clientName} requested a computation operation of {out[1]} for {out[2]}"
+            #         )
+            #         if check_file_exists(out[2]) != True:
+            #             self.clientSocket.send("file does not exist".encode())
+            #             continue
 
-                    log.delete_log(
-                        f"{edgeDeviceName}; {timestamp}; {fileID}; {dataAmount}"
-                    )
+            #         result = str(process_computation(self.clientName, out[1], out[2]))
+            #         print(result)
+            #         self.clientSocket.send(result.encode())
+            #     case "DTE":
+            #         print(f"Edge Device {self.clientName} issued command DTE")
+            #         filename = out[1]
+            #         if check_file_exists(filename) != True:
+            #             self.clientSocket.send("file does not exist".encode())
+            #             continue
+            #         dataAmount = file_data_amount(filename)
+            #         os.remove(filename)
+            #         now = datetime.now()
+            #         timestamp = now.strftime("%d %B %Y %H:%M:%S")
 
-                    message = "DTE success"
-                    self.clientSocket.send(message.encode())
-                case "AED":
-                    print(f"Edge Device {self.clientName} issued command AED")
-                    AED = process_AED(self.clientName, self)
-                    if AED == "":
-                        message = "There are no other devices active"
-                    else:
-                        message = AED
+            #         filelist = filename.split("-")
+            #         edgeDeviceName = filelist[0]
+            #         fileID = filelist[1][:-4]
 
-                    print(f"message = {message}")
-                    self.clientSocket.send(message.encode())
+            #         log.delete_log(
+            #             f"{edgeDeviceName}; {timestamp}; {fileID}; {dataAmount}"
+            #         )
 
-                case "OUT":
-                    print(f"{self.clientName} exited the edge network")
-                    self.clientAlive = False
+            #         message = "DTE success"
+            #         self.clientSocket.send(message.encode())
+            #     case "AED":
+            #         print(f"Edge Device {self.clientName} issued command AED")
+            #         AED = process_AED(self.clientName, self)
+            #         if AED == "":
+            #             message = "There are no other devices active"
+            #         else:
+            #             message = AED
 
-                    decrement_AEDSeqNum()
-                    log.update_edge_device_log(self.clientName)
-                case "":
-                    self.clientAlive = False
-                    print("===== the user disconnected - ", self.clientAddress)
-                    break
-                # return if given device is active -> True/False
-                case "status":
-                    print(out)
-                    checkDevName = out[1]
-                    print(checkDevName)
-                    activeStatus = int(log.get_edge_device_seq_num(checkDevName))
-                    print(f"active status : + {activeStatus}")
-                    # if not active, return 0
-                    if activeStatus == 0:
-                        message = str(activeStatus)
-                        self.clientSocket.send(message.encode())
-                        continue
+            #         print(f"message = {message}")
+            #         self.clientSocket.send(message.encode())
 
-                    IPPortList = get_IP_Port(checkDevName)
-                    # return IP and Port of the checked Device
-                    message = f"{IPPortList[0]} {IPPortList[1]}"
-                    self.clientSocket.send(message.encode())
-                case _:
-                    print(out)
-                    print("[send] Cannot understand this message")
-                    message = "Cannot understand this message"
-                    self.clientSocket.send(message.encode())
+            #     case "OUT":
+            #         print(f"{self.clientName} exited the edge network")
+            #         self.clientAlive = False
+
+            #         decrement_AEDSeqNum()
+            #         log.update_edge_device_log(self.clientName)
+            #     case "":
+            #         self.clientAlive = False
+            #         print("===== the user disconnected - ", self.clientAddress)
+            #         break
+            #     # return if given device is active -> True/False
+            #     case "status":
+            #         print(out)
+            #         checkDevName = out[1]
+            #         print(checkDevName)
+            #         activeStatus = int(log.get_edge_device_seq_num(checkDevName))
+            #         print(f"active status : + {activeStatus}")
+            #         # if not active, return 0
+            #         if activeStatus == 0:
+            #             message = str(activeStatus)
+            #             self.clientSocket.send(message.encode())
+            #             continue
+
+            #         IPPortList = get_IP_Port(checkDevName)
+            #         # return IP and Port of the checked Device
+            #         message = f"{IPPortList[0]} {IPPortList[1]}"
+            #         self.clientSocket.send(message.encode())
+            #     case _:
+            #         print(out)
+            #         print("[send] Cannot understand this message")
+            #         message = "Cannot understand this message"
+            #         self.clientSocket.send(message.encode())
 
 
 if __name__ == "__main__":
