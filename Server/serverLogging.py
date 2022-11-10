@@ -17,19 +17,12 @@ def get_edge_device_seq_num(edgeDeviceName):
 
     with open("edge-device-log.txt") as f:
         lines = f.readlines()
+        print(lines)
         for line in lines:
             lineList = line.split("; ")
             if lineList[2] == edgeDeviceName:
                 return int(lineList[0])
-        return 0
-
-def get_edge_device_seq_num(edgeDeviceName):
-    with open("edge-device-log.txt") as f:
-        lines = f.readlines()
-        for line in lines:
-            lineList = line.split("; ")
-            if lineList[2] == edgeDeviceName:
-                return int(lineList[0])
+    return 0
 
 def update_edge_device_log(edgeDeviceName):
     with open("edge-device-log.txt", "r+") as f:

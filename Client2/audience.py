@@ -19,4 +19,5 @@ def receive_file(IP, Port, timeout):
                     f.write(data)
                 else:
                     print(f"\nFile {filename} successfuly transferred")
+                    print("Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT, UVF): ")
                     break

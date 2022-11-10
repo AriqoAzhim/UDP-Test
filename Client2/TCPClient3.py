@@ -68,7 +68,7 @@ if __name__ == "__main__":
             authFlag = True
         elif receivedMessage == "failed auth":
             print(
-                "Connection with this user has been blocked, please wait and try again later"
+                "Your account is blocked due to multiple authentication failures, Please try again later"
             )
 
     # initialise Audience Component
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     
     while True:
         message = input(
-            "Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT): "
+            "Enter one of the following commands (EDG, UED, SCS, DTE, AED, OUT, UVF): "
         )
         args = message.split(" ")
         command = args[0]
@@ -93,12 +93,12 @@ if __name__ == "__main__":
             case "AED":
                 AED(clientSocket)
             case "OUT":
-                if OUT(clientSocket, message):
+                if OUT(edgeDeviceName, clientSocket, message):
                     break
             case "UVF":
-                UVF(args)
+                UVF(clientSocket, args)
             case _:
-                print("Invalid Command: " + "\"" + message + "\"")
+                print("Error! Invalid Command")
                 continue
 
     # close the socket
